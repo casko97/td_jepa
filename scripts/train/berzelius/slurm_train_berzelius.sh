@@ -17,6 +17,9 @@ PROJECT_DIR="${PROJECT_DIR:-/proj/rpl-soro/users/x_carsk/td_jepa}"
 DATASET_ROOT="${DATASET_ROOT:-${PROJECT_DIR}/data/exorl_processed}"
 SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/submit_td_jepa_berzelius.sh}"
 ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
+NUM_TRAIN_STEPS="${NUM_TRAIN_STEPS:-2000000}"
+NUM_SEEDS="${NUM_SEEDS:-3}"
+NUM_EVAL_EPISODES="${NUM_EVAL_EPISODES:-20}"
 WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
 
 cd "${PROJECT_DIR}"
@@ -38,11 +41,16 @@ fi
 echo "Job ID: ${SLURM_JOB_ID:-local}"
 echo "Host: $(hostname)"
 echo "Dataset: ${DATASET_ROOT}"
-echo "Walker sweep task: ${ARRAY_TASK_ID} / 30"
+echo "Walker sweep task: ${ARRAY_TASK_ID} / $((NUM_SEEDS * 6))"
+echo "Training steps: ${NUM_TRAIN_STEPS}"
+echo "Evaluation episodes: ${NUM_EVAL_EPISODES}"
 nvidia-smi
 
 python -m scripts.train.proprio.launch_td_jepa_dmc \
     --sweep-config sweep_walker \
     --array-task-id "${ARRAY_TASK_ID}" \
+    --num-train-steps "${NUM_TRAIN_STEPS}" \
+    --num-seeds "${NUM_SEEDS}" \
+    --num-eval-episodes "${NUM_EVAL_EPISODES}" \
     --data-path "${DATASET_ROOT}" \
     --workdir-root "${WORK_DIR}"

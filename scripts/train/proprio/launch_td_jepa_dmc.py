@@ -116,6 +116,12 @@ class LaunchArgs:
     wandb_pname: str | None = "td_jepa"
     # specify to run sweeps
     sweep_config: str | None = None
+    # override the training-step default from BASE_CFG
+    num_train_steps: int | None = None
+    # run the first N seeds from the selected sweep
+    num_seeds: int | None = None
+    # override the number of episodes per evaluation
+    num_eval_episodes: int | None = None
     # run one indexed trial from a sweep (for example, a Slurm array task)
     array_task_id: int | None = None
     # instead of launching all experiments, only run the first one
@@ -132,6 +138,12 @@ def main(args: LaunchArgs):
     base_cfg = copy.deepcopy(BASE_CFG)
     base_cfg["work_dir"] = args.workdir_root
     base_cfg["data"]["dataset_root"] = args.data_path
+    if args.num_train_steps is not None:
+        if args.num_train_steps < 1:
+            raise ValueError("--num-train-steps must be positive")
+        base_cfg["num_train_steps"] = args.num_train_steps
+    if args.num_eval_episodes is not None and args.num_eval_episodes < 1:
+        raise ValueError("--num-eval-episodes must be positive")
 
     if args.sweep_config is None:
         sweep_params = {}
@@ -140,6 +152,15 @@ def main(args: LaunchArgs):
             sweep_params = globals()[args.sweep_config]()
         else:
             raise RuntimeError("Unknown sweep configuration")
+
+    if args.num_seeds is not None:
+        if args.num_seeds < 1:
+            raise ValueError("--num-seeds must be positive")
+        if "seed" not in sweep_params:
+            raise ValueError("--num-seeds requires a sweep that defines seeds")
+        if args.num_seeds > len(sweep_params["seed"]):
+            raise ValueError(f"--num-seeds cannot exceed {len(sweep_params['seed'])} for this sweep")
+        sweep_params["seed"] = sweep_params["seed"][: args.num_seeds]
 
     trials = []
     for i, trial in enumerate(all_combinations_of_nested_dicts_for_sweep(sweep_params)):
@@ -163,7 +184,9 @@ def main(args: LaunchArgs):
                                 "task": ALL_TASKS[trial["env.domain"]][0],
                             },
                             "tasks": ALL_TASKS[trial["env.domain"]],
-                            "num_episodes": 10,
+                            "num_episodes": args.num_eval_episodes
+                            if args.num_eval_episodes is not None
+                            else (20 if trial["env.domain"] == "walker" else 10),
                             "num_inference_samples": 10_000,
                         },
                     ],
