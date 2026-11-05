@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=td-jepa-antmaze
+#SBATCH --account=proj-id
+#SBATCH --time=24:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --gpus=1
+#SBATCH --constraint=thin
+#SBATCH --array=0-199%4
+#SBATCH --output=logs/%x-%A_%a.out
+#SBATCH --error=logs/%x-%A_%a.err
+
+set -euo pipefail
+
+PROJECT_DIR="${PROJECT_DIR:-/proj/rpl-soro/users/x_carsk/td_jepa}"
+DATASET_ROOT="${DATASET_ROOT:-${PROJECT_DIR}/data/ogbench}"
+SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/submit_td_jepa_antmaze_berzelius.sh}"
+ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
+WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
+
+cd "${PROJECT_DIR}"
+mkdir -p "${WORK_DIR}"
+
+module load Miniforge3/24.7.1-2-hpc1-bdist
+mamba activate td-jepa
+
+export MUJOCO_GL="${MUJOCO_GL:-egl}"
+export PYOPENGL_PLATFORM="${PYOPENGL_PLATFORM:-egl}"
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-8}"
+
+if [[ ! -d "${DATASET_ROOT}" ]]; then
+    echo "OGBench dataset root does not exist: ${DATASET_ROOT}" >&2
+    exit 1
+fi
+
+echo "Job ID: ${SLURM_JOB_ID:-local}"
+echo "Host: $(hostname)"
+echo "Dataset: ${DATASET_ROOT}"
+echo "Antmaze sweep task: ${ARRAY_TASK_ID} / 200"
+nvidia-smi
+
+python -m scripts.train.proprio.launch_td_jepa_ogbench \
+    --sweep-config sweep_antmaze \
+    --array-task-id "${ARRAY_TASK_ID}" \
+    --data-path "${DATASET_ROOT}" \
+    --workdir-root "${WORK_DIR}"
