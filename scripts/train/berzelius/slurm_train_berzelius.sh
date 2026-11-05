@@ -18,7 +18,7 @@ DATASET_ROOT="${DATASET_ROOT:-${PROJECT_DIR}/data/exorl_processed}"
 SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/submit_td_jepa_berzelius.sh}"
 ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
 NUM_TRAIN_STEPS="${NUM_TRAIN_STEPS:-2000000}"
-NUM_SEEDS="${NUM_SEEDS:-3}"
+NUM_SEEDS="${NUM_SEEDS:-5}"
 NUM_EVAL_EPISODES="${NUM_EVAL_EPISODES:-20}"
 WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
 

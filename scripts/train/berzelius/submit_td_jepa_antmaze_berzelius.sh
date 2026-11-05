@@ -6,7 +6,7 @@ cd "${PROJECT_DIR}"
 
 mkdir -p logs
 SWEEP_NAME="${SWEEP_NAME:-td-jepa-antmaze-$(date +%Y%m%d-%H%M%S)}"
-NUM_SEEDS="${NUM_SEEDS:-10}"
+NUM_SEEDS="${NUM_SEEDS:-5}"
 NUM_DOMAINS="${NUM_DOMAINS:-5}"
 
 if [[ ! "${NUM_SEEDS}" =~ ^([1-9]|10)$ ]]; then
@@ -24,4 +24,4 @@ export PROJECT_DIR SWEEP_NAME NUM_SEEDS NUM_DOMAINS
 
 echo "Submitting state-based antmaze sweep: ${SWEEP_NAME}"
 echo "Seeds: ${NUM_SEEDS}; domains: ${NUM_DOMAINS}; array tasks: ${NUM_TRIALS}"
-sbatch --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_antmaze_berzelius.sh
+sbatch --job-name="${SWEEP_NAME}" --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_antmaze_berzelius.sh
