@@ -6,6 +6,7 @@
 
 import os
 from pathlib import Path
+from typing import Literal
 
 os.environ["MUJOCO_GL"] = "egl"
 
@@ -67,8 +68,9 @@ def extract(
 def main(
     output_folder: str,
     dataset_path: str | None = None,
+    data_type: Literal["all", "state", "visual"] = "all",
 ):
-    for env_name in [
+    env_names = [
         "antmaze-medium-navigate-v0",
         "visual-antmaze-medium-navigate-v0",
         "antmaze-large-navigate-v0",
@@ -89,7 +91,13 @@ def main(
         "visual-cube-single-play-v0",
         "cube-double-play-v0",
         "visual-cube-double-play-v0",
-    ]:
+    ]
+    if data_type == "state":
+        env_names = [env_name for env_name in env_names if not env_name.startswith("visual-")]
+    elif data_type == "visual":
+        env_names = [env_name for env_name in env_names if env_name.startswith("visual-")]
+
+    for env_name in env_names:
         extract(
             env_name=env_name,
             output_folder=output_folder,
