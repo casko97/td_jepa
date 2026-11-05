@@ -31,6 +31,7 @@ cd "${PROJECT_DIR}"
 mkdir -p "${WORK_DIR}"
 
 module load Miniforge3/24.7.1-2-hpc1-bdist
+module load buildenv-gcccuda/12.4.1-gcc13.3.0
 set +u
 mamba activate td-jepa
 set -u
