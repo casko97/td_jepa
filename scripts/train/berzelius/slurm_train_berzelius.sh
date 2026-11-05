@@ -31,7 +31,9 @@ cd "${PROJECT_DIR}"
 mkdir -p "${WORK_DIR}"
 
 module load Miniforge3/24.7.1-2-hpc1-bdist
+set +u
 mamba activate td-jepa
+set -u
 
 export DATASET_ROOT
 export MUJOCO_GL="${MUJOCO_GL:-egl}"
