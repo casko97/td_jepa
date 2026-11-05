@@ -80,6 +80,7 @@ class TDJEPAFlowBCAgent(TDJEPAAgent):
 
         # compute bc loss
         bc_loss = torch.tensor([0.0], device=action.device)
+        bc_error = torch.tensor([0.0], device=action.device)
         if self.cfg.train.bc_coeff > 0:
             with torch.no_grad():
                 target_flow_actions = self.compute_flow_actions(flow_in, noises)
