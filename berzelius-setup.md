@@ -13,4 +13,11 @@ Berzelius lathund:
 2. Crete env: `mamba create -n td-jepa python=3.11`
 3. Activate env: `mamba activate td-jepa`
 4. Setup torch and CUDA: `CONDA_OVERRIDE_CUDA=13.0 mamba install 'pytorch==2.10.0=cuda*'`
+5. Install req's: `python -m pip install -e .` 
+6. Set variables (permanently, after validation)`conda env config vars set MUJOCO_GL=egl PYOPENGL_PLATFORM=egl`
+7. Verify dependencies (on the gpu node) by running `python test_berzelius_setup.py`
 
+## Slurm setup
+
+1. Load module: `module load Miniforge3/24.7.1-2-hpc1-bdist`
+2. Activate environment: `mamba activate td-jepa`
