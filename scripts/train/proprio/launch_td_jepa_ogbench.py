@@ -120,6 +120,8 @@ class LaunchArgs:
     wandb_pname: str | None = "td_jepa"
     # specify to run sweeps
     sweep_config: str | None = None
+    # run one indexed trial from a sweep (for example, a Slurm array task)
+    array_task_id: int | None = None
     # instead of launching all experiments, only run the first one
     first_only: bool = False
     # print out the configs instead of running the experiments
@@ -174,6 +176,14 @@ def main(args: LaunchArgs):
             )
         )
         trials.append(trial)
+
+    if args.array_task_id is not None:
+        if args.sweep_config is None:
+            raise ValueError("--array-task-id requires --sweep-config")
+        if not 0 <= args.array_task_id < len(trials):
+            raise ValueError(f"array-task-id must be between 0 and {len(trials) - 1}")
+        launch_trials(base_cfg, [trials[args.array_task_id]], dry=args.dry)
+        return
 
     launch_trials(base_cfg, trials, args.first_only, args.dry, args.slurm, args.exca)
 
