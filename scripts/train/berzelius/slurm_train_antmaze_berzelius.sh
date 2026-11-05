@@ -21,6 +21,11 @@ NUM_SEEDS="${NUM_SEEDS:-10}"
 NUM_DOMAINS="${NUM_DOMAINS:-5}"
 WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
 
+if [[ -z "${WANDB_API_KEY:-}" ]]; then
+    echo "WANDB_API_KEY is missing. Export it before submitting, for example: export WANDB_API_KEY='<your-key>'" >&2
+    exit 1
+fi
+
 cd "${PROJECT_DIR}"
 mkdir -p "${WORK_DIR}"
 
@@ -45,6 +50,8 @@ nvidia-smi
 
 python -m scripts.train.proprio.launch_td_jepa_ogbench \
     --sweep-config sweep_antmaze \
+    --use-wandb \
+    --wandb-gname "${SWEEP_NAME}" \
     --array-task-id "${ARRAY_TASK_ID}" \
     --num-seeds "${NUM_SEEDS}" \
     --num-domains "${NUM_DOMAINS}" \

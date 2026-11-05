@@ -4,6 +4,11 @@ set -euo pipefail
 PROJECT_DIR="${PROJECT_DIR:-/proj/rpl-soro/users/x_carsk/td_jepa}"
 cd "${PROJECT_DIR}"
 
+if [[ -z "${WANDB_API_KEY:-}" ]]; then
+    echo "WANDB_API_KEY is missing. Export it before submitting, for example: export WANDB_API_KEY='<your-key>'" >&2
+    exit 1
+fi
+
 mkdir -p logs
 SWEEP_NAME="${SWEEP_NAME:-td-jepa-antmaze-$(date +%Y%m%d-%H%M%S)}"
 NUM_SEEDS="${NUM_SEEDS:-5}"
