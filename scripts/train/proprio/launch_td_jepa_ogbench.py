@@ -5,6 +5,7 @@
 
 import copy
 import dataclasses
+import os
 
 import tyro
 
@@ -139,6 +140,7 @@ def main(args: LaunchArgs):
     base_cfg = copy.deepcopy(BASE_CFG)
     base_cfg["work_dir"] = args.workdir_root
     base_cfg["data"]["dataset_root"] = args.data_path
+    base_cfg["log_every_updates"] = int(os.environ.get("LOG_EVERY_UPDATES", "1000"))
 
     if args.sweep_config is None:
         sweep_params = {}
