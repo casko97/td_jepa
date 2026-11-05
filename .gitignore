@@ -7,3 +7,6 @@ wandb/
 *.DS_Store
 .venv/
 data/
+logs/
+results/
+td_jepa.egg-info
