@@ -15,7 +15,7 @@ Berzelius lathund:
 4. Setup torch and CUDA: `CONDA_OVERRIDE_CUDA=13.0 mamba install 'pytorch==2.10.0=cuda*'`
 5. Install req's: `python -m pip install -e .` 
 6. Set variables (permanently, after validation)`conda env config vars set MUJOCO_GL=egl PYOPENGL_PLATFORM=egl`
-7. Verify dependencies (on the gpu node) by running `python test_berzelius_setup.py`
+7. Verify dependencies (on the gpu node) by running `python scripts/smoke/test_berzelius_setup.py`
 
 ## Data download
 
@@ -27,8 +27,7 @@ Berzelius lathund:
     ```
 * ExORL: 
     ```
-    python -m scripts.data_processing.exorl.download --output_folder /proj/rpl-soro/users/x_carsk/td_jepa/data/exorl_raw /
-    --data-type state
+    python -m scripts.data_processing.exorl.download --output_folder /proj/rpl-soro/users/x_carsk/td_jepa/data/exorl_raw 
     ```
 
 * Pre-processing:  (defaults to state; use `--data-type visual` to render and save RGB frames)
@@ -53,7 +52,7 @@ The expected layout is: `$DATASET_ROOT/cube-single-play-v0/buffer/*.npz`
 
 `export SMOKE_WORKDIR="$PWD/results/smoke-td-jepa"`
 
-Run six small GPU updates: `python berzelius_smoke_train.py`
+Run six small GPU updates: `python scripts/smoke/berzelius_smoke_train.py`
 
 Results will be in `results/smoke-td-jepa/`
 
