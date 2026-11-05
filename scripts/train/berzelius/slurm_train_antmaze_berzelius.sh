@@ -17,6 +17,8 @@ PROJECT_DIR="${PROJECT_DIR:-/proj/rpl-soro/users/x_carsk/td_jepa}"
 DATASET_ROOT="${DATASET_ROOT:-${PROJECT_DIR}/data/ogbench}"
 SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/submit_td_jepa_antmaze_berzelius.sh}"
 ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
+NUM_SEEDS="${NUM_SEEDS:-10}"
+NUM_DOMAINS="${NUM_DOMAINS:-5}"
 WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
 
 cd "${PROJECT_DIR}"
@@ -37,11 +39,14 @@ fi
 echo "Job ID: ${SLURM_JOB_ID:-local}"
 echo "Host: $(hostname)"
 echo "Dataset: ${DATASET_ROOT}"
-echo "Antmaze sweep task: ${ARRAY_TASK_ID} / 200"
+echo "Antmaze sweep task: ${ARRAY_TASK_ID} / $((NUM_SEEDS * NUM_DOMAINS * 4))"
+echo "Seeds: ${NUM_SEEDS}; domains: ${NUM_DOMAINS}"
 nvidia-smi
 
 python -m scripts.train.proprio.launch_td_jepa_ogbench \
     --sweep-config sweep_antmaze \
     --array-task-id "${ARRAY_TASK_ID}" \
+    --num-seeds "${NUM_SEEDS}" \
+    --num-domains "${NUM_DOMAINS}" \
     --data-path "${DATASET_ROOT}" \
     --workdir-root "${WORK_DIR}"

@@ -120,6 +120,9 @@ class LaunchArgs:
     wandb_pname: str | None = "td_jepa"
     # specify to run sweeps
     sweep_config: str | None = None
+    # run the first N seeds/domains from the selected sweep
+    num_seeds: int | None = None
+    num_domains: int | None = None
     # run one indexed trial from a sweep (for example, a Slurm array task)
     array_task_id: int | None = None
     # instead of launching all experiments, only run the first one
@@ -144,6 +147,18 @@ def main(args: LaunchArgs):
             sweep_params = globals()[args.sweep_config]()
         else:
             raise RuntimeError("Unknown sweep configuration")
+
+    for option_name, sweep_key in (("num_seeds", "seed"), ("num_domains", "env.domain")):
+        count = getattr(args, option_name)
+        if count is None:
+            continue
+        if count < 1:
+            raise ValueError(f"--{option_name.replace('_', '-')} must be positive")
+        if sweep_key not in sweep_params:
+            raise ValueError(f"--{option_name.replace('_', '-')} requires a sweep that defines {sweep_key}")
+        if count > len(sweep_params[sweep_key]):
+            raise ValueError(f"--{option_name.replace('_', '-')} cannot exceed {len(sweep_params[sweep_key])}")
+        sweep_params[sweep_key] = sweep_params[sweep_key][:count]
 
     trials = []
     for i, trial in enumerate(all_combinations_of_nested_dicts_for_sweep(sweep_params)):
