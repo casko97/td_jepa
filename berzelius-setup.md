@@ -17,6 +17,30 @@ Berzelius lathund:
 6. Set variables (permanently, after validation)`conda env config vars set MUJOCO_GL=egl PYOPENGL_PLATFORM=egl`
 7. Verify dependencies (on the gpu node) by running `python test_berzelius_setup.py`
 
+## Data download
+
+* OGBench: 
+    ```
+    python -m scripts.data_processing.ogbench.extract_all /
+    --output_folder /proj/rpl-soro/users/x_carsk/td_jepa/data/ogbench / 
+    --data-type state
+    ```
+* ExORL: 
+    ```
+    python -m scripts.data_processing.exorl.download --output_folder /proj/rpl-soro/users/x_carsk/td_jepa/data/exorl_raw /
+    --data-type state
+    ```
+
+* Pre-processing:  (defaults to state; use `--data-type visual` to render and save RGB frames)
+    
+    ```
+    python -m scripts.data_processing.exorl.update_all \
+    --input_folder /proj/rpl-soro/users/x_carsk/td_jepa/data/exorl_raw \
+    --output_folder /proj/rpl-soro/users/x_carsk/td_jepa/data/exorl_processed \
+    --num_workers 8
+    ```
+
+
 ## Slurm setup
 
 1. Load module: `module load Miniforge3/24.7.1-2-hpc1-bdist`
