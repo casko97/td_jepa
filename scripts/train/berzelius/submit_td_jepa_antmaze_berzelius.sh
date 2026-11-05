@@ -7,7 +7,7 @@ cd "${PROJECT_DIR}"
 mkdir -p logs
 SWEEP_NAME="${SWEEP_NAME:-td-jepa-antmaze-$(date +%Y%m%d-%H%M%S)}"
 NUM_SEEDS="${NUM_SEEDS:-5}"
-NUM_DOMAINS="${NUM_DOMAINS:-5}"
+NUM_DOMAINS="${NUM_DOMAINS:-1}"
 
 if [[ ! "${NUM_SEEDS}" =~ ^([1-9]|10)$ ]]; then
     echo "NUM_SEEDS must be between 1 and 10" >&2
