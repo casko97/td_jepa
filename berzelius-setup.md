@@ -41,6 +41,22 @@ Berzelius lathund:
     ```
 
 
+## Training smoke-run 
+
+After downloading and pre-processing data. 
+
+`export DATASET_ROOT=/proj/rpl-soro/users/x_carsk/td_jepa/data/ogbench`
+
+The smoke run uses the state-based `cube-single-play-v0` OGBench dataset. Check that extraction created episode files: `find "$DATASET_ROOT/cube-single-play-v0/buffer" -maxdepth 1 -name '*.npz' | head`
+
+The expected layout is: `$DATASET_ROOT/cube-single-play-v0/buffer/*.npz`
+
+`export SMOKE_WORKDIR="$PWD/results/smoke-td-jepa"`
+
+Run six small GPU updates: `python berzelius_smoke_train.py`
+
+Results will be in `results/smoke-td-jepa/`
+
 ## Slurm setup
 
 1. Load module: `module load Miniforge3/24.7.1-2-hpc1-bdist`
