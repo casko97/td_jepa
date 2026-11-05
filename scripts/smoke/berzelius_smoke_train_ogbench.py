@@ -1,5 +1,10 @@
 import copy
 import os
+import sys
+from pathlib import Path
+
+# Running this file by path puts scripts/smoke on sys.path, not the repo root.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scripts.train.proprio.launch_td_jepa_ogbench import BASE_CFG
 from train import TrainConfig

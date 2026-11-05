@@ -42,6 +42,8 @@ Berzelius lathund:
 
 ## Training smoke-run 
 
+### OgBench
+
 After downloading and pre-processing data. 
 
 `export DATASET_ROOT=/proj/rpl-soro/users/x_carsk/td_jepa/data/ogbench`
@@ -52,9 +54,27 @@ The expected layout is: `$DATASET_ROOT/cube-single-play-v0/buffer/*.npz`
 
 `export SMOKE_WORKDIR="$PWD/results/smoke-td-jepa"`
 
-Run six small GPU updates: `python scripts/smoke/berzelius_smoke_train.py`
+Run six small GPU updates: `python scripts/smoke/berzelius_smoke_train_ogbench.py`
 
 Results will be in `results/smoke-td-jepa/`
+
+### EcORL
+
+For ExORL, point `DATASET_ROOT` at the processed dataset directory instead:
+
+`export DATASET_ROOT=/proj/rpl-soro/users/x_carsk/td_jepa/data/exorl_processed`
+
+The smoke run uses the state-based `walker/rnd` dataset. Check that preprocessing created episode files: `find "$DATASET_ROOT/walker/rnd/buffer" -maxdepth 1 -name '*.npz' | head`
+
+The expected layout is: `$DATASET_ROOT/walker/rnd/buffer/*.npz`
+
+Set a separate work directory and run the ExORL smoke trainer:
+
+`export SMOKE_WORKDIR="$PWD/results/smoke-td-jepa-exorl"`
+
+`python scripts/smoke/berzelius_smoke_train_exorl.py`
+
+Results will be in `results/smoke-td-jepa-exorl/`
 
 ## Slurm setup
 
