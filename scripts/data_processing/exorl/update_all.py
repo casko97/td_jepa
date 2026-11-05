@@ -3,6 +3,8 @@
 # This source code is licensed under the CC BY-NC 4.0 license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Literal
+
 import tyro
 
 from scripts.data_processing.exorl.update_data import main as update_data_main
@@ -12,7 +14,7 @@ def main(
     input_folder: str,
     output_folder: str,
     num_workers: int = 0,
-    save_rgb: bool = False,
+    data_type: Literal["state", "visual"] = "state",
 ):
     for domain in ["walker", "cheetah", "quadruped", "pointmass"]:
         update_data_main(
@@ -21,7 +23,7 @@ def main(
             expl_agent="rnd",
             datasets_dir=input_folder,
             new_dataset_dir=output_folder,
-            save_rgb=save_rgb,
+            save_rgb=data_type == "visual",
         )
 
 
