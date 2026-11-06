@@ -10,7 +10,7 @@ if [[ -z "${WANDB_API_KEY:-}" ]]; then
 fi
 
 mkdir -p logs
-SWEEP_NAME="${SWEEP_NAME:-td-jepa-walker-reprod$(date +%Y%m%d-%H%M%S)}"
+SWEEP_NAME="${SWEEP_NAME:-td-jepa-walker-reprod-$(date +%Y%m%d-%H%M%S)}"
 NUM_TRAIN_STEPS="${NUM_TRAIN_STEPS:-2000000}"
 NUM_SEEDS="${NUM_SEEDS:-3}"
 NUM_EVAL_EPISODES="${NUM_EVAL_EPISODES:-20}"
