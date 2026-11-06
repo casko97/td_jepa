@@ -83,8 +83,8 @@ Before submitting, replace `proj-id` in `#SBATCH --account=proj-id` in both Slur
 Run them from the project root:
 
 ```bash
-bash scripts/train/berzelius/submit_td_jepa_berzelius.sh
-bash scripts/train/berzelius/submit_td_jepa_antmaze_berzelius.sh
+bash scripts/train/berzelius/template_submit_td_jepa_berzelius.sh
+bash scripts/train/berzelius/template_submit_td_jepa_antmaze_berzelius.sh
 ```
 
 
@@ -110,7 +110,7 @@ For example, run one million steps using three seeds and ten evaluation episodes
 
 ```bash
 NUM_TRAIN_STEPS=1000000 NUM_SEEDS=3 NUM_EVAL_EPISODES=10 \
-  bash scripts/train/berzelius/submit_td_jepa_berzelius.sh
+  bash scripts/train/berzelius/template_submit_td_jepa_berzelius.sh
 ```
 
 The array task count is `NUM_SEEDS × 6`, because the Python sweep defines six learning-rate/orthogonality combinations per seed.
@@ -131,7 +131,7 @@ For example, run the first three seeds on the first two antmaze domains:
 
 ```bash
 NUM_SEEDS=3 NUM_DOMAINS=2 \
-  bash scripts/train/berzelius/submit_td_jepa_antmaze_berzelius.sh
+  bash scripts/train/berzelius/template_submit_td_jepa_antmaze_berzelius.sh
 ```
 
 That submits `NUM_SEEDS × NUM_DOMAINS × 4` tasks.
