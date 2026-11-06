@@ -5,6 +5,7 @@
 
 import copy
 import dataclasses
+import os
 
 import tyro
 
@@ -120,6 +121,11 @@ class LaunchArgs:
     wandb_pname: str | None = "td_jepa"
     # specify to run sweeps
     sweep_config: str | None = None
+    # run the first N seeds/domains from the selected sweep
+    num_seeds: int | None = None
+    num_domains: int | None = None
+    # run one indexed trial from a sweep (for example, a Slurm array task)
+    array_task_id: int | None = None
     # instead of launching all experiments, only run the first one
     first_only: bool = False
     # print out the configs instead of running the experiments
@@ -134,6 +140,7 @@ def main(args: LaunchArgs):
     base_cfg = copy.deepcopy(BASE_CFG)
     base_cfg["work_dir"] = args.workdir_root
     base_cfg["data"]["dataset_root"] = args.data_path
+    base_cfg["log_every_updates"] = int(os.environ.get("LOG_EVERY_UPDATES", "1000"))
 
     if args.sweep_config is None:
         sweep_params = {}
@@ -142,6 +149,18 @@ def main(args: LaunchArgs):
             sweep_params = globals()[args.sweep_config]()
         else:
             raise RuntimeError("Unknown sweep configuration")
+
+    for option_name, sweep_key in (("num_seeds", "seed"), ("num_domains", "env.domain")):
+        count = getattr(args, option_name)
+        if count is None:
+            continue
+        if count < 1:
+            raise ValueError(f"--{option_name.replace('_', '-')} must be positive")
+        if sweep_key not in sweep_params:
+            raise ValueError(f"--{option_name.replace('_', '-')} requires a sweep that defines {sweep_key}")
+        if count > len(sweep_params[sweep_key]):
+            raise ValueError(f"--{option_name.replace('_', '-')} cannot exceed {len(sweep_params[sweep_key])}")
+        sweep_params[sweep_key] = sweep_params[sweep_key][:count]
 
     trials = []
     for i, trial in enumerate(all_combinations_of_nested_dicts_for_sweep(sweep_params)):
@@ -174,6 +193,14 @@ def main(args: LaunchArgs):
             )
         )
         trials.append(trial)
+
+    if args.array_task_id is not None:
+        if args.sweep_config is None:
+            raise ValueError("--array-task-id requires --sweep-config")
+        if not 0 <= args.array_task_id < len(trials):
+            raise ValueError(f"array-task-id must be between 0 and {len(trials) - 1}")
+        launch_trials(base_cfg, [trials[args.array_task_id]], dry=args.dry)
+        return
 
     launch_trials(base_cfg, trials, args.first_only, args.dry, args.slurm, args.exca)
 

@@ -121,6 +121,8 @@ class Workspace:
     def __init__(self, cfg: TrainConfig) -> None:
         self.cfg = cfg
 
+        stage_started = time.perf_counter()
+        print("[setup] Building environment and reading spaces...", flush=True)
         sample_env, _ = cfg.env.build()
         self.obs_space = sample_env.observation_space
         assert isinstance(self.obs_space, gymnasium.spaces.Box), "Only Box observation spaces are supported"
@@ -128,6 +130,7 @@ class Workspace:
         self.action_space = sample_env.action_space
         assert len(self.action_space.shape) == 1, "Only 1D action space is supported"
         self.action_dim = self.action_space.shape[0]
+        print(f"[setup] Environment ready ({time.perf_counter() - stage_started:.1f}s)", flush=True)
 
         print(f"Workdir: {self.cfg.work_dir}")
         self.work_dir = Path(self.cfg.work_dir)
@@ -137,25 +140,37 @@ class Workspace:
 
         set_seed_everywhere(self.cfg.seed)
 
+        stage_started = time.perf_counter()
+        print("[setup] Building agent or loading checkpoint...", flush=True)
         self.agent, self.cfg, self._checkpoint_time = create_agent_or_load_checkpoint(
             self.work_dir,
             self.cfg,
             agent_build_kwargs=dict(obs_space=self.obs_space, action_dim=self.action_dim),
         )
         self.agent._model.train()
+        print(f"[setup] Agent ready ({time.perf_counter() - stage_started:.1f}s)", flush=True)
 
+        stage_started = time.perf_counter()
+        print("[setup] Building evaluations...", flush=True)
         if isinstance(self.cfg.evaluations, list):
             self.evaluations = {eval_cfg.name_in_logs: eval_cfg.build() for eval_cfg in self.cfg.evaluations}
         elif isinstance(self.cfg.evaluations, dict):
             self.evaluations = {name: eval_cfg.build() for name, eval_cfg in self.cfg.evaluations.items()}
         self.evaluate = len(self.evaluations) > 0
         self.eval_loggers = {name: CSVLogger(filename=self.work_dir / f"{name}.csv") for name, eval_cfg in self.evaluations.items()}
+        print(f"[setup] Evaluations ready ({time.perf_counter() - stage_started:.1f}s)", flush=True)
 
         if self.cfg.use_wandb:
+            print("[setup] Initializing Weights & Biases...", flush=True)
+            stage_started = time.perf_counter()
             init_wandb(self.cfg)
+            print(f"[setup] Weights & Biases ready ({time.perf_counter() - stage_started:.1f}s)", flush=True)
 
+        print("[setup] Writing config.json...", flush=True)
+        stage_started = time.perf_counter()
         with (self.work_dir / "config.json").open("w") as f:
             f.write(self.cfg.model_dump_json(indent=4))
+        print(f"[setup] Config saved ({time.perf_counter() - stage_started:.1f}s)", flush=True)
 
     def train(self):
         self.start_time = time.time()
@@ -164,8 +179,11 @@ class Workspace:
     def train_offline(self) -> None:
         buffer_device = self.agent.device if self.cfg.buffer_device is None else self.cfg.buffer_device
         relabel_fn = self.cfg.env.get_relabel_fn(self.cfg.env.task) if self.cfg.relabel_dataset else None
+        stage_started = time.perf_counter()
+        print(f"[setup] Building replay buffer on {buffer_device}...", flush=True)
         replay_buffer = self.cfg.data.build(buffer_device, self.cfg.agent.train.batch_size, self.cfg.env.frame_stack, relabel_fn)
-        print(replay_buffer["train"])
+        print(f"[setup] Replay buffer ready ({time.perf_counter() - stage_started:.1f}s)", flush=True)
+        print(replay_buffer["train"], flush=True)
 
         total_metrics = None
         fps_start_time = time.time()
@@ -173,6 +191,11 @@ class Workspace:
         eval_time_checker = EveryNStepsChecker(self._checkpoint_time, self.cfg.eval_every_steps)
         log_time_checker = EveryNStepsChecker(self._checkpoint_time, self.cfg.log_every_updates)
 
+        print(
+            f"[train] Starting updates {self._checkpoint_time} through {int(self.cfg.num_train_steps)}; "
+            f"logging every {self.cfg.log_every_updates} updates",
+            flush=True,
+        )
         for t in range(self._checkpoint_time, int(self.cfg.num_train_steps) + 1):
             if (t != self._checkpoint_time) and checkpoint_time_checker.check(t):
                 checkpoint_time_checker.update_last_step(t)
@@ -182,7 +205,12 @@ class Workspace:
                 eval_time_checker.update_last_step(t)
                 self.eval(t, replay_buffer=replay_buffer)
 
+            if t == self._checkpoint_time:
+                first_update_started = time.perf_counter()
+                print(f"[train] Starting first update at step {t} (initial compilation may take time)...", flush=True)
             metrics = self.agent.update(replay_buffer, t)
+            if t == self._checkpoint_time:
+                print(f"[train] First update finished ({time.perf_counter() - first_update_started:.1f}s)", flush=True)
 
             # we need to copy tensors returned by a cudagraph module
             if total_metrics is None:
@@ -203,7 +231,7 @@ class Workspace:
                         {f"train/{k}": v for k, v in m_dict.items()},
                         step=t,
                     )
-                print(m_dict)
+                print(m_dict, flush=True)
                 total_metrics = None
                 fps_start_time = time.time()
         return
