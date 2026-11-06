@@ -125,6 +125,8 @@ class LaunchArgs:
     phi_predictor_hidden_layers: int | None = None
     psi_predictor_hidden_layers: int | None = None
     actor_hidden_layers: int | None = None
+    actor_vf_hidden_layers: int | None = None
+    actor_vf_hidden_dim: int | None = None
     phi_dim: int | None = None
     # run the first N seeds/domains from the selected sweep
     num_seeds: int | None = None
@@ -150,6 +152,8 @@ def main(args: LaunchArgs):
         "agent.model.archi.phi_predictor.hidden_layers": args.phi_predictor_hidden_layers,
         "agent.model.archi.psi_predictor.hidden_layers": args.psi_predictor_hidden_layers,
         "agent.model.archi.actor.hidden_layers": args.actor_hidden_layers,
+        "agent.model.archi.actor_vf.hidden_layers": args.actor_vf_hidden_layers,
+        "agent.model.archi.actor_vf.hidden_dim": args.actor_vf_hidden_dim,
         "agent.model.archi.phi_dim": args.phi_dim,
     }
     for config_path, value in architecture_overrides.items():

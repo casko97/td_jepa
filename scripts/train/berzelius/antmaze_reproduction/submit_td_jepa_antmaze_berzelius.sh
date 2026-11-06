@@ -18,6 +18,8 @@ NUM_DOMAINS="${NUM_DOMAINS:-1}"
 PHI_PREDICTOR_HIDDEN_LAYERS="${PHI_PREDICTOR_HIDDEN_LAYERS:-4}"
 PSI_PREDICTOR_HIDDEN_LAYERS="${PSI_PREDICTOR_HIDDEN_LAYERS:-4}"
 ACTOR_HIDDEN_LAYERS="${ACTOR_HIDDEN_LAYERS:-4}"
+ACTOR_VF_HIDDEN_LAYERS="${ACTOR_VF_HIDDEN_LAYERS:-4}"
+ACTOR_VF_HIDDEN_DIM="${ACTOR_VF_HIDDEN_DIM:-512}"
 PHI_DIM="${PHI_DIM:-256}"
 
 if [[ ! "${NUM_SEEDS}" =~ ^([1-9]|10)$ ]]; then
@@ -28,7 +30,7 @@ if [[ ! "${NUM_DOMAINS}" =~ ^[1-5]$ ]]; then
     echo "NUM_DOMAINS must be between 1 and 5" >&2
     exit 1
 fi
-for var_name in PHI_PREDICTOR_HIDDEN_LAYERS PSI_PREDICTOR_HIDDEN_LAYERS ACTOR_HIDDEN_LAYERS PHI_DIM; do
+for var_name in PHI_PREDICTOR_HIDDEN_LAYERS PSI_PREDICTOR_HIDDEN_LAYERS ACTOR_HIDDEN_LAYERS ACTOR_VF_HIDDEN_LAYERS ACTOR_VF_HIDDEN_DIM PHI_DIM; do
     if [[ ! "${!var_name}" =~ ^[1-9][0-9]*$ ]]; then
         echo "${var_name} must be a positive integer" >&2
         exit 1
@@ -38,9 +40,10 @@ done
 # sweep_antmaze currently has four hyperparameter combinations per seed/domain.
 NUM_TRIALS=$((NUM_SEEDS * NUM_DOMAINS * 4))
 export PROJECT_DIR SWEEP_NAME NUM_SEEDS NUM_DOMAINS
-export PHI_PREDICTOR_HIDDEN_LAYERS PSI_PREDICTOR_HIDDEN_LAYERS ACTOR_HIDDEN_LAYERS PHI_DIM
+export PHI_PREDICTOR_HIDDEN_LAYERS PSI_PREDICTOR_HIDDEN_LAYERS ACTOR_HIDDEN_LAYERS
+export ACTOR_VF_HIDDEN_LAYERS ACTOR_VF_HIDDEN_DIM PHI_DIM
 
 echo "Submitting state-based antmaze sweep: ${SWEEP_NAME}"
 echo "Seeds: ${NUM_SEEDS}; domains: ${NUM_DOMAINS}; array tasks: ${NUM_TRIALS}"
-echo "Architecture overrides: Tphi/Tpsi depth=${PHI_PREDICTOR_HIDDEN_LAYERS}/${PSI_PREDICTOR_HIDDEN_LAYERS}; actor depth=${ACTOR_HIDDEN_LAYERS}; phi_dim=${PHI_DIM}"
+echo "Architecture overrides: Tphi/Tpsi depth=${PHI_PREDICTOR_HIDDEN_LAYERS}/${PSI_PREDICTOR_HIDDEN_LAYERS}; actor depth=${ACTOR_HIDDEN_LAYERS}; actor flow field=${ACTOR_VF_HIDDEN_LAYERS}x${ACTOR_VF_HIDDEN_DIM}; phi_dim=${PHI_DIM}"
 sbatch --job-name="${SWEEP_NAME}" --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_antmaze_berzelius.sh
