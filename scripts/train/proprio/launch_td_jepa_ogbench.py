@@ -121,6 +121,11 @@ class LaunchArgs:
     wandb_pname: str | None = "td_jepa"
     # specify to run sweeps
     sweep_config: str | None = None
+    # override architecture values; omitted values retain BASE_CFG defaults
+    phi_predictor_hidden_layers: int | None = None
+    psi_predictor_hidden_layers: int | None = None
+    actor_hidden_layers: int | None = None
+    phi_dim: int | None = None
     # run the first N seeds/domains from the selected sweep
     num_seeds: int | None = None
     num_domains: int | None = None
@@ -141,6 +146,23 @@ def main(args: LaunchArgs):
     base_cfg["work_dir"] = args.workdir_root
     base_cfg["data"]["dataset_root"] = args.data_path
     base_cfg["log_every_updates"] = int(os.environ.get("LOG_EVERY_UPDATES", "1000"))
+    architecture_overrides = {
+        "agent.model.archi.phi_predictor.hidden_layers": args.phi_predictor_hidden_layers,
+        "agent.model.archi.psi_predictor.hidden_layers": args.psi_predictor_hidden_layers,
+        "agent.model.archi.actor.hidden_layers": args.actor_hidden_layers,
+        "agent.model.archi.phi_dim": args.phi_dim,
+    }
+    for config_path, value in architecture_overrides.items():
+        if value is None:
+            continue
+        min_value = 0 if config_path.endswith("hidden_layers") else 1
+        if value < min_value:
+            raise ValueError(f"{config_path} must be >= {min_value}")
+        node = base_cfg
+        path_parts = config_path.split(".")
+        for part in path_parts[:-1]:
+            node = node[part]
+        node[path_parts[-1]] = value
 
     if args.sweep_config is None:
         sweep_params = {}
