@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=td-jepa
-#SBATCH --account=berzelius-2026-211
+#SBATCH --job-name=td-jepa-dmc-reprod
+#SBATCH --account=proj-id
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

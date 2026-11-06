@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=td-jepa-antmaze
+#SBATCH --job-name=td-jepa-antmaze-reprod
 #SBATCH --account=proj-id
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1

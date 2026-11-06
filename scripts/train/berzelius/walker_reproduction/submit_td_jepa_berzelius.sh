@@ -55,4 +55,4 @@ export ACTOR_HIDDEN_LAYERS ACTOR_HIDDEN_DIM
 echo "Submitting Walker sweep: ${SWEEP_NAME}"
 echo "Training steps: ${NUM_TRAIN_STEPS}; evaluation episodes: ${NUM_EVAL_EPISODES}; seeds: ${NUM_SEEDS}; array tasks: ${NUM_TRIALS}"
 echo "Architecture overrides: Tphi depth=${PHI_PREDICTOR_HIDDEN_LAYERS}; Tpsi depth=${PSI_PREDICTOR_HIDDEN_LAYERS}; actor=${ACTOR_HIDDEN_LAYERS}x${ACTOR_HIDDEN_DIM}. Other architecture values use the Python launcher defaults."
-sbatch --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_berzelius.sh
+sbatch --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_dmc_berzelius.sh
