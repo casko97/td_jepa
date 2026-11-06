@@ -15,10 +15,16 @@ set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/proj/rpl-soro/users/x_carsk/td_jepa}"
 DATASET_ROOT="${DATASET_ROOT:-${PROJECT_DIR}/data/ogbench}"
-SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/submit_td_jepa_antmaze_berzelius.sh}"
+SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/antmazereproduction/submit_td_jepa_antmaze_berzelius.sh}"
 ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
 NUM_SEEDS="${NUM_SEEDS:-10}"
 NUM_DOMAINS="${NUM_DOMAINS:-5}"
+PHI_PREDICTOR_HIDDEN_LAYERS="${PHI_PREDICTOR_HIDDEN_LAYERS:-4}"
+PSI_PREDICTOR_HIDDEN_LAYERS="${PSI_PREDICTOR_HIDDEN_LAYERS:-4}"
+ACTOR_HIDDEN_LAYERS="${ACTOR_HIDDEN_LAYERS:-4}"
+ACTOR_VF_HIDDEN_LAYERS="${ACTOR_VF_HIDDEN_LAYERS:-4}"
+ACTOR_VF_HIDDEN_DIM="${ACTOR_VF_HIDDEN_DIM:-512}"
+PHI_DIM="${PHI_DIM:-256}"
 WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
 
 if [[ -z "${WANDB_API_KEY:-}" ]]; then
@@ -58,5 +64,11 @@ python -m scripts.train.proprio.launch_td_jepa_ogbench \
     --array-task-id "${ARRAY_TASK_ID}" \
     --num-seeds "${NUM_SEEDS}" \
     --num-domains "${NUM_DOMAINS}" \
+    --phi-predictor-hidden-layers "${PHI_PREDICTOR_HIDDEN_LAYERS}" \
+    --psi-predictor-hidden-layers "${PSI_PREDICTOR_HIDDEN_LAYERS}" \
+    --actor-hidden-layers "${ACTOR_HIDDEN_LAYERS}" \
+    --actor-vf-hidden-layers "${ACTOR_VF_HIDDEN_LAYERS}" \
+    --actor-vf-hidden-dim "${ACTOR_VF_HIDDEN_DIM}" \
+    --phi-dim "${PHI_DIM}" \
     --data-path "${DATASET_ROOT}" \
     --workdir-root "${WORK_DIR}"

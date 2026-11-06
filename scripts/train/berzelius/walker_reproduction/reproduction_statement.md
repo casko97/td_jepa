@@ -4,7 +4,7 @@ This submission runs TD-JEPA on state-based Walker data from ExORL/DMC. It corre
 
 ## Parameter comparison
 
-The first column shows the launcher's base configuration before sweep values and submit-script overrides. The second shows the effective Walker run configuration after those changes. Paper values are from Table 4 unless otherwise indicated.
+The first column shows the launcher's `BASE_CFG` before sweep values and CLI overrides. The second shows the effective default Berzelius run (`NUM_SEEDS=3`), after the submit and Slurm wrappers pass values to the launcher. Paper values are from Table 4 unless otherwise indicated. Architecture values are configured hidden-layer counts and widths; the paper describes predictor/actor architectures as including two normalized embedding layers in addition to the Table 4 depth.
 
 | Parameter | Default implementation | Walker launch configuration | Paper reported values |
 |---|---|---|---|
@@ -17,20 +17,22 @@ The first column shows the launcher's base configuration before sweep values and
 | Discount factor γ | 0.98 | 0.98 | 0.98 (Table 4, DMC) |
 | EMA coefficient | 0.001 | Encoder and predictor target EMA coefficients: 0.001 each | 0.001 (Table 4, DMC) |
 | Task-encoder learning rate `lr_psi` | 1e-4 | Sweep over `{1e-4, 1e-5}` | Sweep over `[1e-4, 1e-5]` (Appendix E.5) |
-| Orthonormal regularization coefficient λ | `phi_ortho_coef=0.1`; `psi_ortho_coef=0.1` | Sweep `psi_ortho_coef` over `{0.01, 0.1, 1}`; keep `phi_ortho_coef=0.1` | TD-JEPA DMC range `[0.01, 0.1, 1]` (Table 5). Paper reports one λ; local code splits it across ϕ and ψ coefficients. |
+| Orthonormal regularization coefficients | Base `phi_ortho_coef=0.1`; `psi_ortho_coef=0.1` | `phi_ortho_coef` stays at 0.1; `psi_ortho_coef` sweeps `{0.01, 0.1, 1}` | Table 5 gives TD-JEPA DMC λ values `[0.01, 0.1, 1]`; Algorithm 1 uses one λ for both encoder losses |
 | Evaluation episodes | Launcher default: 20 for Walker | 20 | 20 for DMC (Appendix E.7) |
-| Seeds | Sweep defines `[3917, 3502, 8948, 9460, 4729]` | First 3 by default; `NUM_SEEDS` selects a prefix | 5 for DMC (Appendix E.7); the paper does not report seed IDs |
+| Seeds | Sweep defines `[3917, 3502, 8948, 9460, 4729]` | First 3 by default; `NUM_SEEDS` selects a prefix | Paper reports 10 seeds (Appendix E.7); the paper does not report seed IDs |
+
+The paper's Table 4 also reports `pgoal=0.5`. The equivalent code setting is `train_goal_ratio=0.5`, inherited from `TDJEPAAgentTrainConfig`; it matches without an explicit launcher override.
 
 ## Remaining unclear parameters
 
-- **Regularization:** Table 5 reports one λ, but this code has separate ϕ and ψ coefficients. The sweep varies ψ over `{0.01, 0.1, 1}` and holds ϕ at `0.1`; the paper does not specify how λ maps to both losses.
+- **Regularization mapping:** Table 5 gives TD-JEPA DMC λ candidates `{0.01, 0.1, 1}`, and Algorithm 1 applies one λ to both encoder regularizers. This implementation has separate `phi_ortho_coef` and `psi_ortho_coef`, but the existing Walker sweep changes only ψ while holding ϕ at `0.1`. It therefore runs `(ϕ, ψ) = (0.1,0.01), (0.1,0.1), (0.1,1)` for each learning rate. Only `(0.1,0.1)` is a shared-λ setting; whether Table 5's λ should map identically to both code fields is not explicit in the implementation, so these results should be reported as the repo's sweep rather than an exact reproduction of that regularization grid.
 - **Layer counting:** the paper does not clarify whether its reported layer counts include the two embedding layers. The launch overrides set the configured hidden-layer counts to 3 as reported.
-- **Seeds:** the paper reports five DMC seeds but not their IDs. The submit default runs three; use `NUM_SEEDS=5` to match the paper's seed count.
+- **Seeds:** Appendix E.7 reports ten seeds and does not give their IDs. The local sweep defines five seed IDs, so this launcher cannot reproduce the paper's reported seed count; `NUM_SEEDS=5` runs all available local IDs.
 - **`F`:** it is general successor-feature notation, not a separate TD-JEPA network; no `F` module is added.
 
 ## Paper-aligned launch overrides
 
-Only four values need explicit launch overrides: `PHI_PREDICTOR_HIDDEN_LAYERS=3`, `PSI_PREDICTOR_HIDDEN_LAYERS=3`, `ACTOR_HIDDEN_LAYERS=3`, and `ACTOR_HIDDEN_DIM=256`. Predictor widths and both encoders already match Table 4 in Python defaults. The submit script otherwise uses the paper's 2M steps, six-config sweep, and 20 evaluation episodes. Its default three seeds are intentional; set `NUM_SEEDS=5` for the paper's seed count.
+Four architecture values are explicitly set by the submit/Slurm path: `PHI_PREDICTOR_HIDDEN_LAYERS=3`, `PSI_PREDICTOR_HIDDEN_LAYERS=3`, `ACTOR_HIDDEN_LAYERS=3`, and `ACTOR_HIDDEN_DIM=256`. Predictor widths and both encoders come from Python defaults. The path uses the paper's 2M steps, six-config sweep, and 20 Walker evaluation episodes. Its default three seeds are a reduced-seed run; the local sweep contains only five IDs while the paper reports ten, so no supported `NUM_SEEDS` value can match the paper count.
 
 ## Run
 

@@ -10,3 +10,4 @@ data/
 logs/
 results/
 td_jepa.egg-info
+scripts/debugging/
