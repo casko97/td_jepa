@@ -34,4 +34,4 @@ export PROJECT_DIR SWEEP_NAME NUM_TRAIN_STEPS NUM_SEEDS NUM_EVAL_EPISODES
 
 echo "Submitting Walker sweep: ${SWEEP_NAME}"
 echo "Training steps: ${NUM_TRAIN_STEPS}; evaluation episodes: ${NUM_EVAL_EPISODES}; seeds: ${NUM_SEEDS}; array tasks: ${NUM_TRIALS}"
-sbatch --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_berzelius.sh
+sbatch --export=ALL --array="0-$((NUM_TRIALS - 1))%4" scripts/train/berzelius/slurm_train_dmc_berzelius.sh

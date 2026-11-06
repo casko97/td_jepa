@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=td-jepa
-#SBATCH --account=proj-id
+#SBATCH --account=berzelius-2026-211
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -15,11 +15,15 @@ set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/proj/rpl-soro/users/x_carsk/td_jepa}"
 DATASET_ROOT="${DATASET_ROOT:-${PROJECT_DIR}/data/exorl_processed}"
-SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/submit_td_jepa_berzelius.sh}"
+SWEEP_NAME="${SWEEP_NAME:?Submit with scripts/train/berzelius/walker_reproduction/submit_td_jepa_berzelius.sh}"
 ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
 NUM_TRAIN_STEPS="${NUM_TRAIN_STEPS:-2000000}"
 NUM_SEEDS="${NUM_SEEDS:-5}"
 NUM_EVAL_EPISODES="${NUM_EVAL_EPISODES:-20}"
+PHI_PREDICTOR_HIDDEN_LAYERS="${PHI_PREDICTOR_HIDDEN_LAYERS:-3}"
+PSI_PREDICTOR_HIDDEN_LAYERS="${PSI_PREDICTOR_HIDDEN_LAYERS:-3}"
+ACTOR_HIDDEN_LAYERS="${ACTOR_HIDDEN_LAYERS:-3}"
+ACTOR_HIDDEN_DIM="${ACTOR_HIDDEN_DIM:-256}"
 WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
 
 if [[ -z "${WANDB_API_KEY:-}" ]]; then
@@ -62,5 +66,9 @@ python -m scripts.train.proprio.launch_td_jepa_dmc \
     --num-train-steps "${NUM_TRAIN_STEPS}" \
     --num-seeds "${NUM_SEEDS}" \
     --num-eval-episodes "${NUM_EVAL_EPISODES}" \
+    --phi-predictor-hidden-layers "${PHI_PREDICTOR_HIDDEN_LAYERS}" \
+    --psi-predictor-hidden-layers "${PSI_PREDICTOR_HIDDEN_LAYERS}" \
+    --actor-hidden-layers "${ACTOR_HIDDEN_LAYERS}" \
+    --actor-hidden-dim "${ACTOR_HIDDEN_DIM}" \
     --data-path "${DATASET_ROOT}" \
     --workdir-root "${WORK_DIR}"

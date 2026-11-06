@@ -118,6 +118,19 @@ class LaunchArgs:
     sweep_config: str | None = None
     # override the training-step default from BASE_CFG
     num_train_steps: int | None = None
+    # override DMC architecture values; omitted values retain BASE_CFG defaults
+    phi_predictor_hidden_layers: int | None = None
+    phi_predictor_hidden_dim: int | None = None
+    psi_predictor_hidden_layers: int | None = None
+    psi_predictor_hidden_dim: int | None = None
+    phi_encoder_hidden_layers: int | None = None
+    phi_encoder_hidden_dim: int | None = None
+    psi_encoder_hidden_layers: int | None = None
+    psi_encoder_hidden_dim: int | None = None
+    phi_dim: int | None = None
+    psi_dim: int | None = None
+    actor_hidden_layers: int | None = None
+    actor_hidden_dim: int | None = None
     # run the first N seeds from the selected sweep
     num_seeds: int | None = None
     # override the number of episodes per evaluation
@@ -142,6 +155,31 @@ def main(args: LaunchArgs):
         if args.num_train_steps < 1:
             raise ValueError("--num-train-steps must be positive")
         base_cfg["num_train_steps"] = args.num_train_steps
+    architecture_overrides = {
+        "agent.model.archi.phi_predictor.hidden_layers": args.phi_predictor_hidden_layers,
+        "agent.model.archi.phi_predictor.hidden_dim": args.phi_predictor_hidden_dim,
+        "agent.model.archi.psi_predictor.hidden_layers": args.psi_predictor_hidden_layers,
+        "agent.model.archi.psi_predictor.hidden_dim": args.psi_predictor_hidden_dim,
+        "agent.model.archi.phi_mlp_encoder.hidden_layers": args.phi_encoder_hidden_layers,
+        "agent.model.archi.phi_mlp_encoder.hidden_dim": args.phi_encoder_hidden_dim,
+        "agent.model.archi.psi_mlp_encoder.hidden_layers": args.psi_encoder_hidden_layers,
+        "agent.model.archi.psi_mlp_encoder.hidden_dim": args.psi_encoder_hidden_dim,
+        "agent.model.archi.phi_dim": args.phi_dim,
+        "agent.model.archi.psi_dim": args.psi_dim,
+        "agent.model.archi.actor.hidden_layers": args.actor_hidden_layers,
+        "agent.model.archi.actor.hidden_dim": args.actor_hidden_dim,
+    }
+    for config_path, value in architecture_overrides.items():
+        if value is None:
+            continue
+        min_value = 0 if config_path.endswith("hidden_layers") else 1
+        if value < min_value:
+            raise ValueError(f"{config_path} must be >= {min_value}")
+        node = base_cfg
+        path_parts = config_path.split(".")
+        for part in path_parts[:-1]:
+            node = node[part]
+        node[path_parts[-1]] = value
     if args.num_eval_episodes is not None and args.num_eval_episodes < 1:
         raise ValueError("--num-eval-episodes must be positive")
 
