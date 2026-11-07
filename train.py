@@ -111,8 +111,11 @@ def create_agent_or_load_checkpoint(work_dir: Path, cfg: TrainConfig, agent_buil
 
 
 def init_wandb(cfg: TrainConfig):
-    exp_name = "dmc-offline"
-    wandb_name = exp_name
+    # Slurm arrays share a job name, so include the task job ID to keep each
+    # W&B run distinct while matching it to the submitted job.
+    job_name = os.environ.get("SLURM_JOB_NAME") or cfg.wandb_gname or Path(cfg.work_dir).name
+    job_id = os.environ.get("SLURM_JOB_ID") or os.environ.get("SLURM_ARRAY_JOB_ID")
+    wandb_name = f"{job_name}-{job_id}" if job_id is not None else job_name
     wandb_config = cfg.model_dump()
     wandb.init(entity=cfg.wandb_ename, project=cfg.wandb_pname, group=cfg.wandb_gname, name=wandb_name, config=wandb_config, dir="./_wandb")
 

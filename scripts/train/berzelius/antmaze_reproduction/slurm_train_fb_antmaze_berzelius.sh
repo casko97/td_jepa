@@ -19,7 +19,9 @@ SWEEP_NAME="${SWEEP_NAME:?Submit with submit_fb_antmaze_berzelius.sh}"
 ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:?Submit this script as a Slurm array}"
 NUM_SEEDS="${NUM_SEEDS:-10}"
 NUM_DOMAINS="${NUM_DOMAINS:-5}"
-WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}"
+JOB_ID="${SLURM_ARRAY_JOB_ID:-${SLURM_JOB_ID:-local}}"
+WORK_DIR="${WORK_DIR:-${PROJECT_DIR}/results/${SWEEP_NAME}}-${JOB_ID}"
+LOG_DIR="${PROJECT_DIR}/logs/${SWEEP_NAME}-${JOB_ID}"
 
 if [[ -z "${WANDB_API_KEY:-}" ]]; then
     echo "WANDB_API_KEY is missing. Export it before submitting." >&2
@@ -27,7 +29,8 @@ if [[ -z "${WANDB_API_KEY:-}" ]]; then
 fi
 
 cd "${PROJECT_DIR}"
-mkdir -p "${WORK_DIR}"
+mkdir -p "${WORK_DIR}" "${LOG_DIR}"
+exec > >(tee -a "${LOG_DIR}/${ARRAY_TASK_ID}.out") 2> >(tee -a "${LOG_DIR}/${ARRAY_TASK_ID}.err" >&2)
 
 module load Miniforge3/24.7.1-2-hpc1-bdist
 module load buildenv-gcccuda/12.4.1-gcc13.3.0
